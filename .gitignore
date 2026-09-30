@@ -1,0 +1,21 @@
+# Datasets (raw + processed) — large binary data, not source
+data/
+
+# Reference / baseline code and PDFs kept locally only
+DeepSMOTE/
+GAN-model/
+Generative-model/
+imbalance-data/
+*.pdf
+
+# Python environment and caches
+.venv/
+venv/
+__pycache__/
+*.pyc
+
+# Editor/OS noise
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

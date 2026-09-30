@@ -1,0 +1,5 @@
+numpy>=1.21
+torch>=1.10        # torchvision cần torch
+torchvision>=0.11  # tải/đọc MNIST, Fashion-MNIST, CIFAR-10, SVHN, CelebA (kèm Pillow)
+scipy>=1.7         # chỉ cần cho SVHN (file .mat)
+gdown>=4.0         # chỉ cần để tự động tải CelebA

@@ -133,6 +133,24 @@ Code gốc của tác giả trong `DeepSMOTE/` đọc file text float đã flatt
 Để dùng dữ liệu này với code đó sau này: `np.savetxt(path, train["x"].reshape(len(train["x"]), -1))` và
 `np.savetxt(path, train["y"])`.
 
+## Xem kết quả & so sánh với DeepSMOTE
+
+`src/visualization/` chỉ ĐỌC dataset đã tạo trong `data/processed/` — không sample lại, không sửa dữ
+liệu. Dùng để xác nhận trực quan dataset đã tạo giống số liệu paper DeepSMOTE (và code gốc trong
+`DeepSMOTE/GenerateSamples.py`, biến `imbal`) hay chưa.
+
+```bash
+python src/visualization/inspect_dataset.py --dataset mnist --seed 42
+python src/visualization/inspect_dataset.py --dataset all --seed 42
+```
+
+In ra bảng so sánh số mẫu mỗi class (paper DeepSMOTE vs. dataset thực tế đọc từ `train.npz`), và lưu 2 ảnh
+vào `reports/<dataset>/imbalance_<tỉ lệ>/seed_<seed>/`:
+- `class_distribution.png` — biểu đồ cột so sánh số mẫu mỗi class (log scale do tỉ lệ mất cân bằng lớn).
+- `sample_grid.png` — lưới ảnh mẫu, mỗi hàng một class, để xem trực quan dữ liệu.
+
+Exit code khác 0 nếu có class không khớp paper, hoặc dataset chưa được tạo.
+
 ## Code
 
 ```
@@ -142,6 +160,10 @@ src/preprocessing/
 ├── sampling.py                   # sampling theo class có seed, không hoàn lại
 ├── validation.py                 # các bước kiểm tra ở trên
 └── create_imbalanced_dataset.py  # CLI: sample → lưu → load lại → validate → metadata
+
+src/visualization/
+├── report.py                     # load dataset đã tạo, so sánh với DATASET_CONFIGS, vẽ biểu đồ
+└── inspect_dataset.py            # CLI: in bảng so sánh + xuất class_distribution.png, sample_grid.png
 ```
 
 Dùng từ một notebook ở thư mục gốc của project:
@@ -149,5 +171,7 @@ Dùng từ một notebook ở thư mục gốc của project:
 ```python
 import sys; sys.path.insert(0, "src")
 from preprocessing.create_imbalanced_dataset import create_imbalanced_dataset
+from visualization.inspect_dataset import inspect_dataset
 create_imbalanced_dataset("mnist", seed=42)
+inspect_dataset("mnist", seed=42)
 ```

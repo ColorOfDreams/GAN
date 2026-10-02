@@ -1,6 +1,9 @@
 # Datasets (raw + processed) — large binary data, not source
 data/
 
+# Báo cáo/ảnh xuất ra bởi src/visualization — tạo lại được, không phải source
+reports/
+
 # Reference / baseline code and PDFs kept locally only
 DeepSMOTE/
 GAN-model/

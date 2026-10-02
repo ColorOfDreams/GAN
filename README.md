@@ -1,8 +1,15 @@
-# GAN cho dữ liệu mất cân bằng — Tiền xử lý dữ liệu theo DeepSMOTE
+# GAN cho dữ liệu mất cân bằng — DeepSMOTE
 
-Bước này chỉ **chuẩn bị dữ liệu** theo protocol thực nghiệm của paper DeepSMOTE
-([arXiv:2105.02340](https://arxiv.org/abs/2105.02340)). Bước này **không** train autoencoder, không chạy
-SMOTE/DeepSMOTE, không train GAN hay classifier và không tính metric nào.
+Repo gồm 2 tầng, theo đúng protocol của paper DeepSMOTE ([arXiv:2105.02340](https://arxiv.org/abs/2105.02340)):
+
+- **Tầng 1 — `src/preprocessing/`:** chuẩn bị dữ liệu — lấy dataset gốc cân bằng, tạo ra training set
+  **mất cân bằng** đúng số mẫu mỗi class như paper. Không tạo mẫu tổng hợp.
+- **Tầng 2 — `src/deepsmote/`:** thuật toán DeepSMOTE thật — train autoencoder, SMOTE trong latent
+  space, decode, ghép với ảnh thật để ra dataset **đã balance**. Nhận input là output của tầng 1.
+
+Không train GAN hay classifier, không tính accuracy/F1/AUC ở cả 2 tầng — phạm vi dừng ở việc tạo dữ liệu.
+
+## Tầng 1: Tiền xử lý — tạo dataset mất cân bằng
 
 Với mỗi dataset:
 
@@ -196,6 +203,63 @@ Lệnh này đọc `kernel-metadata.json` ở gốc repo (đã có sẵn, trỏ 
 nhật kernel trên Kaggle. Muốn chạy lại sau khi sửa notebook, chạy lại đúng lệnh `kaggle kernels push -p .`.
 Theo dõi tiến trình chạy: `kaggle kernels status <id-vua-sua-o-tren>`.
 
+## Tầng 2: DeepSMOTE thật — train autoencoder + SMOTE latent + decode
+
+Input là output của tầng 1 (`data/processed/<dataset>/.../train.npz`) — chạy tầng 1 trước.
+
+```bash
+python src/deepsmote/run_deepsmote.py --dataset mnist --seed 42 --epochs 50
+```
+
+Lệnh trên chạy 2 bước liên tiếp (cũng chạy được riêng từng bước):
+
+```bash
+python src/deepsmote/train_autoencoder.py --dataset mnist --seed 42 --epochs 50
+python src/deepsmote/generate_balanced_dataset.py --dataset mnist --seed 42
+```
+
+**Bước 1 — `train_autoencoder.py`:** train Encoder/Decoder (CNN) trên dataset mất cân bằng. Loss mỗi
+bước = reconstruction trên batch random + reconstruction **thiên lệch** trên 100 mẫu của 1 class ngẫu
+nhiên (để autoencoder học tốt cả class hiếm, vốn ít khi xuất hiện đủ trong batch random khi dataset mất
+cân bằng). Bước này **không nội suy** gì cả — chỉ chuẩn bị để decoder decode tốt vùng latent của mọi
+class trước khi SMOTE thật sự diễn ra ở bước 2. Lưu `encoder_best.pth`, `decoder_best.pth` (loss thấp
+nhất), `encoder_final.pth`, `decoder_final.pth`, và `train_config.json`.
+
+**Bước 2 — `generate_balanced_dataset.py`:** dùng encoder/decoder đã train (không train thêm). Với mỗi
+class có ít hơn class đông nhất: encode ảnh thật → SMOTE kinh điển trong latent space (kNN + nội suy
+tuyến tính `sample = base + rand(0,1) * (hàng_xóm - base)`, viết tay bằng numpy, không thêm dependency
+`scikit-learn`) → decode → ảnh synthetic. Ghép với toàn bộ ảnh thật gốc (giữ nguyên, không sửa) → dataset
+đã balance.
+
+Output: `data/processed/<dataset>/.../deepsmote/`
+```
+deepsmote/
+├── train_config.json       # dim_h, n_z, lr, epochs, batch_size đã dùng để train
+├── encoder_best.pth, decoder_best.pth     # trọng số tại epoch có loss thấp nhất
+├── encoder_final.pth, decoder_final.pth   # trọng số epoch cuối cùng
+├── balanced_train.npz      # x (uint8 NHWC), y (int64), is_synthetic (bool) — ảnh thật + synthetic
+└── balanced_metadata.json  # số thật/synthetic mỗi class, config đã dùng, thời điểm tạo
+```
+
+Tùy chọn: `--dim-h`, `--n-z`, `--batch-size`, `--lr`, `--k-neighbors` (số hàng xóm dùng khi SMOTE, mặc
+định 5, giống paper). Mặc định `--epochs 50` (paper dùng 200, giảm xuống để chạy thử nhanh hơn — tăng lên
+để ảnh synthetic chất lượng tốt hơn). Chạy trên CPU: MNIST ~50s/epoch.
+
+Kiểm tra nhanh kết quả:
+```python
+import numpy as np
+d = np.load("data/processed/mnist/imbalance_100/seed_42/deepsmote/balanced_train.npz")
+x, y, is_synth = d["x"], d["y"], d["is_synthetic"]
+print(np.bincount(y))          # mỗi class đều bằng class đông nhất
+print(np.bincount(y[~is_synth]))  # phần thật — phải khớp đúng số liệu paper (tầng 1)
+```
+
+**Kiến trúc tự chọn, khác code gốc tác giả:** `models.py` dùng `AdaptiveAvgPool2d` ở encoder và nội suy
+kích thước ở cuối decoder, nên 1 kiến trúc chạy được cho cả ảnh 28×28×1 (MNIST/Fashion-MNIST) lẫn
+32×32×3 (CIFAR-10/SVHN/CelebA) — code gốc trong `DeepSMOTE/DeepSMOTE_MNIST.py` chỉ viết cứng cho 28×28.
+Giữ đúng ý tưởng thuật toán (loss kết hợp lúc train, SMOTE trong latent lúc generate), không cam kết
+khớp từng lớp với kiến trúc paper.
+
 ## Code
 
 ```
@@ -209,6 +273,15 @@ src/preprocessing/
 src/visualization/
 ├── report.py                     # load dataset đã tạo, so sánh với DATASET_CONFIGS, vẽ biểu đồ
 └── inspect_dataset.py            # CLI: in bảng so sánh + xuất class_distribution.png, sample_grid.png
+
+src/deepsmote/
+├── config.py                     # TrainConfig: dim_h, n_z, lr, epochs, batch_size, k_neighbors
+├── models.py                     # Encoder/Decoder (CNN), dùng chung cho mọi kích thước ảnh
+├── data.py                       # train.npz (uint8 NHWC) <-> tensor NCHW [-1,1]
+├── latent_smote.py               # SMOTE thật (kNN + nội suy) trong latent space
+├── train_autoencoder.py          # CLI bước 1: train encoder/decoder
+├── generate_balanced_dataset.py  # CLI bước 2: SMOTE latent + decode + ghép ảnh thật
+└── run_deepsmote.py              # CLI: chạy bước 1 rồi bước 2
 ```
 
 Dùng từ một notebook ở thư mục gốc của project:
@@ -217,6 +290,9 @@ Dùng từ một notebook ở thư mục gốc của project:
 import sys; sys.path.insert(0, "src")
 from preprocessing.create_imbalanced_dataset import create_imbalanced_dataset
 from visualization.inspect_dataset import inspect_dataset
-create_imbalanced_dataset("mnist", seed=42)
-inspect_dataset("mnist", seed=42)
+from deepsmote.run_deepsmote import main as run_deepsmote
+
+create_imbalanced_dataset("mnist", seed=42)   # tầng 1
+inspect_dataset("mnist", seed=42)              # so sánh với paper
+run_deepsmote(["--dataset", "mnist", "--seed", "42", "--epochs", "50"])  # tầng 2
 ```

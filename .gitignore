@@ -4,11 +4,12 @@ data/
 # Báo cáo/ảnh xuất ra bởi src/visualization — tạo lại được, không phải source
 reports/
 
-# Reference / baseline code and PDFs kept locally only
-DeepSMOTE/
-GAN-model/
-Generative-model/
-imbalance-data/
+# Reference / baseline code and PDFs kept locally only (neo vào gốc repo — trên Windows git so
+# khớp không phân biệt hoa/thường nên "DeepSMOTE/" không neo sẽ vô tình khớp cả "src/deepsmote/")
+/DeepSMOTE/
+/GAN-model/
+/Generative-model/
+/imbalance-data/
 *.pdf
 
 # Python environment and caches

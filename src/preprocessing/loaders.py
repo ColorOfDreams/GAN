@@ -1,8 +1,5 @@
 """Loader cho các dataset gốc (không chỉnh sửa).
 
-Mỗi loader trả về train split và test split chính thức dưới dạng `Split`, ảnh
-uint8 layout NHWC và nhãn int64. Ở đây không có yếu tố ngẫu nhiên nào, và file
-gốc trên đĩa chỉ được đọc (hoặc tải về nếu chưa có), không bao giờ bị sửa.
 """
 
 from __future__ import annotations

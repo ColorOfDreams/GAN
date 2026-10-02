@@ -3,9 +3,6 @@
 Tham khảo:
     Dablain, Krawczyk, Chawla. "DeepSMOTE: Fusing Deep Learning and SMOTE for
     Imbalanced Data", IEEE TNNLS 2022. arXiv:2105.02340.
-
-Mọi số lượng mẫu theo class dùng trong pipeline đều lấy từ DATASET_CONFIGS;
-không nơi nào khác được hard-code các con số này.
 """
 
 from __future__ import annotations

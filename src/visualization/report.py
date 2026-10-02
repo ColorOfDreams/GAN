@@ -1,10 +1,4 @@
 """Load dataset đã xử lý và so sánh với số liệu paper DeepSMOTE.
-
-Module này chỉ ĐỌC dữ liệu đã có trong `data/processed/` (do
-`create_imbalanced_dataset.py` tạo ra) — không sample, không sửa, không tạo
-dataset mới. Mục đích duy nhất: cho thấy kết quả và xác nhận số mẫu mỗi class
-khớp với `DATASET_CONFIGS` (tức là khớp với các con số trong paper DeepSMOTE,
-ví dụ mảng `imbal` trong `DeepSMOTE/GenerateSamples.py`).
 """
 
 from __future__ import annotations

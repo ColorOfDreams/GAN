@@ -1,0 +1,14 @@
+{
+  "id": "REPLACE_WITH_KAGGLE_USERNAME/deepsmote-data-preprocessing",
+  "title": "DeepSMOTE data preprocessing - so sanh voi paper",
+  "code_file": "so_sanh_voi_deepsmote.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": true,
+  "enable_gpu": false,
+  "enable_internet": true,
+  "keywords": ["deepsmote", "imbalanced-data", "preprocessing"],
+  "dataset_sources": [],
+  "competition_sources": [],
+  "kernel_sources": []
+}

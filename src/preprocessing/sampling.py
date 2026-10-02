@@ -10,13 +10,6 @@ import numpy as np
 def sample_imbalanced_indices(
     labels: np.ndarray, class_counts: Sequence[int], seed: int
 ) -> np.ndarray:
-    """Chọn `class_counts[c]` index khác nhau thuộc class `c` từ `labels`.
-
-    Một `np.random.Generator` duy nhất khởi tạo bằng `seed` là nguồn ngẫu nhiên
-    duy nhất, và các class được duyệt theo thứ tự cố định, nên kết quả hoàn toàn
-    tái lập được. Index trả về được nhóm theo class (0, 1, ...) và sắp xếp tăng
-    dần trong mỗi class.
-    """
     rng = np.random.default_rng(seed)
     selected = []
     for cls, count in enumerate(class_counts):

@@ -1,9 +1,5 @@
 """Tạo training set mất cân bằng theo protocol dữ liệu của DeepSMOTE.
 
-Với mỗi dataset: load các split chính thức gốc, undersample ngẫu nhiên TRAINING
-split về đúng số mẫu mỗi class như paper DeepSMOTE (không hoàn lại, không tạo dữ
-liệu tổng hợp), giữ nguyên TEST split, lưu cả hai kèm metadata và kiểm tra kết quả.
-
 Cách dùng:
     python src/preprocessing/create_imbalanced_dataset.py --dataset mnist --seed 42
     python src/preprocessing/create_imbalanced_dataset.py --dataset all

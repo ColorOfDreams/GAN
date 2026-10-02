@@ -165,6 +165,36 @@ notebook, tiện cho việc theo dõi từng bước thay vì chạy CLI. Chạy
   (`USE_DRIVE = True`) để giữ `data/processed/` giữa các lần chạy, khỏi tải lại từ đầu.
   **Lưu ý:** Colab chỉ clone được những commit đã push lên `origin/master` — nhớ `git push` trước khi mở
   notebook trên Colab nếu vừa sửa code ở local.
+- **Kaggle Notebook:** xem mục "Chạy trên Kaggle" ngay bên dưới.
+
+### Chạy trên Kaggle
+
+Notebook tự nhận diện Kaggle (biến môi trường `KAGGLE_KERNEL_RUN_TYPE`) và `git clone` repo về
+`/kaggle/working/GAN`, y hệt cách làm với Colab — **không cần đẩy code trong `src/` lên Kaggle**, chỉ cần
+đẩy đúng 1 file notebook; mỗi lần Kaggle chạy, nó tự lấy bản `src/` mới nhất từ GitHub.
+
+**Điều kiện bắt buộc:** repo phải là public trên GitHub, và trong kernel Kaggle phải bật
+**Settings → Internet: On** (mặc định Kaggle tắt Internet, bật thì mới `git clone`/tải dataset gốc được).
+
+**Cách 1 — tải thủ công lên Kaggle (không cần cài gì thêm):**
+1. Vào [kaggle.com/code](https://kaggle.com/code) → **New Notebook**.
+2. `File → Upload Notebook` → chọn file `so_sanh_voi_deepsmote.ipynb` trên máy.
+3. Bật `Settings → Internet: On`.
+4. `Run All`.
+
+**Cách 2 — đẩy bằng Kaggle API (`kaggle kernels push`), lặp lại được từ dòng lệnh:**
+```bash
+pip install kaggle
+# Lấy API token: kaggle.com/settings -> API -> Create New Token -> tải kaggle.json
+# Windows: đặt file vào %USERPROFILE%\.kaggle\kaggle.json
+# Linux/macOS: đặt file vào ~/.kaggle/kaggle.json (chmod 600)
+
+# Sửa "id" trong kernel-metadata.json thành "<username-kaggle-cua-ban>/deepsmote-data-preprocessing"
+kaggle kernels push -p .
+```
+Lệnh này đọc `kernel-metadata.json` ở gốc repo (đã có sẵn, trỏ tới `so_sanh_voi_deepsmote.ipynb`), tạo/cập
+nhật kernel trên Kaggle. Muốn chạy lại sau khi sửa notebook, chạy lại đúng lệnh `kaggle kernels push -p .`.
+Theo dõi tiến trình chạy: `kaggle kernels status <id-vua-sua-o-tren>`.
 
 ## Code
 

@@ -76,11 +76,66 @@ def comparison_all_match(rows: list[ClassComparisonRow]) -> bool:
 
 
 def format_comparison_table(rows: list[ClassComparisonRow]) -> str:
-    header = f"{'Class':<16}{'Paper DeepSMOTE':>16}{'Thực tế':>12}{'Kết quả':>10}"
+    """Số mẫu mỗi class, paper vs. thực tế. Không in cột "khớp/sai" khi mọi số đều đúng —
+    hai cột số bằng nhau đã đủ tự nói lên điều đó. Chỉ khi lệch mới in cảnh báo rõ ràng.
+    """
+    header = f"{'Class':<16}{'Paper DeepSMOTE':>16}{'Thực tế':>12}"
     lines = [header, "-" * len(header)]
     for row in rows:
-        status = "KHỚP" if row.match else "SAI"
-        lines.append(f"{row.class_index} ({row.class_name:<10}){row.expected:>14}{row.actual:>12}{status:>10}")
+        line = f"{row.class_index} ({row.class_name:<10}){row.expected:>14}{row.actual:>12}"
+        if not row.match:
+            line += f"   ⚠ LỆCH (mong đợi {row.expected}, thực tế {row.actual})"
+        lines.append(line)
+    return "\n".join(lines)
+
+
+@dataclass(frozen=True)
+class DatasetSummary:
+    key: str
+    display_name: str
+    num_classes: int
+    total_train: int
+    imbalance_ratio: str
+    all_match: bool
+
+
+def summarize_dataset(key: str, seed: int, processed_dir: Path = PROCESSED_DIR) -> DatasetSummary | None:
+    """Tóm tắt 1 dataset đã tạo: tổng mẫu train, tỉ lệ mất cân bằng, có khớp paper không.
+
+    Trả về None nếu dataset chưa được tạo (thay vì ném lỗi), để dùng được ngay trong vòng lặp
+    liệt kê nhiều dataset mà không cần try/except ở nơi gọi.
+    """
+    try:
+        ds = load_processed_dataset(key, seed, processed_dir)
+    except FileNotFoundError:
+        return None
+    rows = compare_with_deepsmote(ds)
+    return DatasetSummary(
+        key=key,
+        display_name=ds.cfg.display_name,
+        num_classes=ds.cfg.num_classes,
+        total_train=sum(r.actual for r in rows),
+        imbalance_ratio=ds.cfg.imbalance_ratio_str,
+        all_match=comparison_all_match(rows),
+    )
+
+
+def format_overview_table(summaries: dict[str, DatasetSummary | None]) -> str:
+    """Bảng tổng quan nhiều dataset: số liệu thật (tổng mẫu, tỉ lệ) thay vì chỉ CÓ/KHÔNG.
+
+    Dataset chưa tạo hiện "(chưa tạo)" thay vì bị bỏ qua lặng lẽ. Dataset có class lệch so với
+    paper được đánh dấu rõ — còn lại không cần nhãn gì thêm.
+    """
+    header = f"{'Dataset':<16}{'Số class':>10}{'Tổng mẫu train':>16}{'Tỉ lệ mất cân bằng':>22}"
+    lines = [header, "-" * len(header)]
+    for key, s in summaries.items():
+        if s is None:
+            lines.append(f"{key:<16}{'—':>10}{'—':>16}{'(chưa tạo)':>22}")
+            continue
+        line = f"{s.display_name:<16}{s.num_classes:>10}{s.total_train:>16}{s.imbalance_ratio:>22}"
+        if not s.all_match:
+            line += "   ⚠ LỆCH so với paper"
+        lines.append(line)
     return "\n".join(lines)
 
 

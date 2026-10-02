@@ -28,9 +28,11 @@ import matplotlib.pyplot as plt  # noqa: E402
 
 from preprocessing.config import DATASET_CONFIGS, DEFAULT_SEED, PROCESSED_DIR  # noqa: E402
 from visualization.report import (  # noqa: E402
+    DatasetSummary,
     compare_with_deepsmote,
     comparison_all_match,
     format_comparison_table,
+    format_overview_table,
     load_processed_dataset,
     plot_class_distribution,
     plot_sample_grid,
@@ -47,8 +49,8 @@ def inspect_dataset(
     processed_dir: Path = PROCESSED_DIR,
     reports_dir: Path = DEFAULT_REPORTS_DIR,
     samples_per_class: int = 6,
-) -> bool:
-    """In báo cáo so sánh + xuất ảnh cho một dataset. Trả về True nếu mọi class khớp paper."""
+) -> DatasetSummary:
+    """In báo cáo so sánh + xuất ảnh cho một dataset. Trả về tóm tắt kết quả."""
     ds = load_processed_dataset(key, seed, processed_dir)
     rows = compare_with_deepsmote(ds)
     all_match = comparison_all_match(rows)
@@ -67,13 +69,17 @@ def inspect_dataset(
     print()
     print(f"Tổng số mẫu train: {sum(r.actual for r in rows)} (paper: {sum(r.expected for r in rows)})")
     print(f"Test set: {len(ds.test_y)} mẫu (giữ nguyên, không resample)")
-    print()
-    print(f"Giống paper DeepSMOTE: {'CÓ' if all_match else 'KHÔNG'}")
+    if not all_match:
+        print("⚠ Một số class lệch so với paper DeepSMOTE — xem bảng ở trên.")
     print(f"Biểu đồ phân bố class: {dist_path}")
     print(f"Lưới mẫu ảnh: {grid_path}")
     print()
 
-    return all_match
+    return DatasetSummary(
+        key=key, display_name=ds.cfg.display_name, num_classes=ds.cfg.num_classes,
+        total_train=sum(r.actual for r in rows), imbalance_ratio=ds.cfg.imbalance_ratio_str,
+        all_match=all_match,
+    )
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
@@ -98,7 +104,7 @@ def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
     keys = list(DATASET_CONFIGS) if args.dataset == "all" else [args.dataset]
 
-    results = {}
+    results: dict[str, DatasetSummary | None] = {}
     for key in keys:
         try:
             results[key] = inspect_dataset(
@@ -107,9 +113,14 @@ def main(argv: list[str] | None = None) -> int:
             )
         except FileNotFoundError as exc:
             logger.error(str(exc))
-            results[key] = False
+            results[key] = None
 
-    mismatched = [key for key, ok in results.items() if not ok]
+    if len(keys) > 1:
+        print("Tổng quan:\n")
+        print(format_overview_table(results))
+        print()
+
+    mismatched = [key for key, s in results.items() if s is None or not s.all_match]
     if mismatched:
         logger.error("Không khớp paper DeepSMOTE (hoặc chưa tạo): %s", ", ".join(mismatched))
         return 1

@@ -151,6 +151,11 @@ vào `reports/<dataset>/imbalance_<tỉ lệ>/seed_<seed>/`:
 
 Exit code khác 0 nếu có class không khớp paper, hoặc dataset chưa được tạo.
 
+**Notebook `so_sanh_voi_deepsmote.ipynb`** (ở thư mục gốc project) dùng lại chính các hàm trong
+`src/visualization/report.py` (không viết lại logic) để xem bảng so sánh và 2 biểu đồ trên ngay trong
+notebook, tiện cho việc theo dõi từng bước thay vì chạy CLI. Mở bằng VS Code / Jupyter, chọn kernel
+`.venv`, chạy từ trên xuống; đổi `DATASET`/`SEED` ở cell tương ứng để xem dataset khác.
+
 ## Code
 
 ```

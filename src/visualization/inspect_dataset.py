@@ -20,6 +20,12 @@ from pathlib import Path
 if __package__ in (None, ""):  # chạy trực tiếp dạng script: cho phép import `preprocessing`/`visualization`
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
+import matplotlib  # noqa: E402
+
+matplotlib.use("Agg")  # CLI không cần hiển thị hình, chỉ lưu file (phải set trước khi import pyplot)
+
+import matplotlib.pyplot as plt  # noqa: E402
+
 from preprocessing.config import DATASET_CONFIGS, DEFAULT_SEED, PROCESSED_DIR  # noqa: E402
 from visualization.report import (  # noqa: E402
     compare_with_deepsmote,
@@ -50,8 +56,8 @@ def inspect_dataset(
     out_dir = reports_dir / ds.cfg.key / ds.cfg.imbalance_dirname / f"seed_{seed}"
     dist_path = out_dir / "class_distribution.png"
     grid_path = out_dir / "sample_grid.png"
-    plot_class_distribution(ds, rows, dist_path)
-    plot_sample_grid(ds, grid_path, samples_per_class=samples_per_class, seed=seed)
+    plt.close(plot_class_distribution(ds, rows, dist_path))
+    plt.close(plot_sample_grid(ds, grid_path, samples_per_class=samples_per_class, seed=seed))
 
     print(f"\nDataset: {ds.cfg.display_name}")
     print(f"Random seed: {seed}")

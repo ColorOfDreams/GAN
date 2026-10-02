@@ -90,10 +90,12 @@ def format_comparison_table(rows: list[ClassComparisonRow]) -> str:
     return "\n".join(lines)
 
 
-def plot_class_distribution(ds: LoadedDataset, rows: list[ClassComparisonRow], out_path: Path) -> None:
-    """Biểu đồ cột: số mẫu mỗi class — paper DeepSMOTE vs. dataset thực tế đã tạo."""
-    import matplotlib
-    matplotlib.use("Agg")
+def plot_class_distribution(ds: LoadedDataset, rows: list[ClassComparisonRow], out_path: Path | None = None):
+    """Biểu đồ cột: số mẫu mỗi class — paper DeepSMOTE vs. dataset thực tế đã tạo.
+
+    Trả về `Figure` (không gọi `plt.close`), để dùng được cả từ CLI (lưu file
+    rồi đóng) lẫn từ notebook (hiển thị inline). Chỉ lưu file khi có `out_path`.
+    """
     import matplotlib.pyplot as plt
 
     x = np.arange(len(rows))
@@ -110,15 +112,17 @@ def plot_class_distribution(ds: LoadedDataset, rows: list[ClassComparisonRow], o
     ax.legend()
     fig.tight_layout()
 
-    out_path.parent.mkdir(parents=True, exist_ok=True)
-    fig.savefig(out_path, dpi=120)
-    plt.close(fig)
+    if out_path is not None:
+        out_path.parent.mkdir(parents=True, exist_ok=True)
+        fig.savefig(out_path, dpi=120)
+    return fig
 
 
-def plot_sample_grid(ds: LoadedDataset, out_path: Path, samples_per_class: int = 6, seed: int = 0) -> None:
-    """Lưới ảnh mẫu: mỗi dòng là một class, để nhìn trực quan dữ liệu đã tạo."""
-    import matplotlib
-    matplotlib.use("Agg")
+def plot_sample_grid(ds: LoadedDataset, out_path: Path | None = None, samples_per_class: int = 6, seed: int = 0):
+    """Lưới ảnh mẫu: mỗi dòng là một class, để nhìn trực quan dữ liệu đã tạo.
+
+    Trả về `Figure` (không gọi `plt.close`); chỉ lưu file khi có `out_path`.
+    """
     import matplotlib.pyplot as plt
 
     rng = np.random.default_rng(seed)
@@ -143,6 +147,7 @@ def plot_sample_grid(ds: LoadedDataset, out_path: Path, samples_per_class: int =
     fig.suptitle(f"{ds.cfg.display_name} — mẫu ảnh theo class (seed={ds.seed})")
     fig.tight_layout()
 
-    out_path.parent.mkdir(parents=True, exist_ok=True)
-    fig.savefig(out_path, dpi=120)
-    plt.close(fig)
+    if out_path is not None:
+        out_path.parent.mkdir(parents=True, exist_ok=True)
+        fig.savefig(out_path, dpi=120)
+    return fig

@@ -4,3 +4,4 @@ torchvision>=0.11  # tải/đọc MNIST, Fashion-MNIST, CIFAR-10, SVHN, CelebA (
 scipy>=1.7         # chỉ cần cho SVHN (file .mat)
 gdown>=4.0         # chỉ cần để tự động tải CelebA
 matplotlib>=3.5    # chỉ cần cho src/visualization (biểu đồ, lưới mẫu ảnh)
+ipykernel>=6.0      # chỉ cần để chạy so_sanh_voi_deepsmote.ipynb

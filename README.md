@@ -153,8 +153,18 @@ Exit code khác 0 nếu có class không khớp paper, hoặc dataset chưa đư
 
 **Notebook `so_sanh_voi_deepsmote.ipynb`** (ở thư mục gốc project) dùng lại chính các hàm trong
 `src/visualization/report.py` (không viết lại logic) để xem bảng so sánh và 2 biểu đồ trên ngay trong
-notebook, tiện cho việc theo dõi từng bước thay vì chạy CLI. Mở bằng VS Code / Jupyter, chọn kernel
-`.venv`, chạy từ trên xuống; đổi `DATASET`/`SEED` ở cell tương ứng để xem dataset khác.
+notebook, tiện cho việc theo dõi từng bước thay vì chạy CLI. Chạy được ở cả hai môi trường:
+
+- **VS Code / Jupyter local:** chọn kernel `.venv`, chạy từ trên xuống; đổi `DATASET`/`SEED` ở cell
+  tương ứng để xem dataset khác.
+- **Google Colab:** mở notebook trên Colab (File → Upload notebook, hoặc
+  `https://colab.research.google.com/github/ColorOfDreams/GAN/blob/master/so_sanh_voi_deepsmote.ipynb`),
+  chọn `Runtime > Run all`. Cell đầu tự `git clone` repo về `/content/GAN` và `pip install -r
+  requirements.txt`; vì Colab xóa hết file sau mỗi phiên nên dataset nào chưa có sẽ được tự tạo lại
+  (tải dataset gốc + sample) ngay trong cell "Chọn dataset và seed". Có cell tùy chọn mount Google Drive
+  (`USE_DRIVE = True`) để giữ `data/processed/` giữa các lần chạy, khỏi tải lại từ đầu.
+  **Lưu ý:** Colab chỉ clone được những commit đã push lên `origin/master` — nhớ `git push` trước khi mở
+  notebook trên Colab nếu vừa sửa code ở local.
 
 ## Code
 

@@ -254,6 +254,19 @@ print(np.bincount(y))          # mỗi class đều bằng class đông nhất
 print(np.bincount(y[~is_synth]))  # phần thật — phải khớp đúng số liệu paper (tầng 1)
 ```
 
+Hoặc dùng CLI có sẵn — in bảng thật/synthetic mỗi class và xuất ảnh biểu đồ + lưới so sánh:
+```bash
+python src/visualization/inspect_balanced_dataset.py --dataset mnist --seed 42
+```
+Xuất `reports/<dataset>/.../deepsmote/balance_distribution.png` (cột chồng thật+synthetic mỗi class) và
+`real_vs_synthetic_class<N>.png` (lưới 2 hàng: ảnh thật vs ảnh synthetic của 1 class, mặc định class hiếm
+nhất — đổi bằng `--class-index`).
+
+**GPU:** cả `train_autoencoder.py`, `generate_balanced_dataset.py` và `run_deepsmote.py` tự dùng
+`cuda` nếu máy có GPU (`torch.cuda.is_available()`), không cần chỉnh gì thêm — trên Kaggle/Colab chỉ cần
+bật GPU trong Settings trước khi chạy. Notebook `so_sanh_voi_deepsmote.ipynb` (mục "Tầng 2") in rõ đang
+chạy `cuda` hay `cpu` để bạn xác nhận.
+
 **Kiến trúc tự chọn, khác code gốc tác giả:** `models.py` dùng `AdaptiveAvgPool2d` ở encoder và nội suy
 kích thước ở cuối decoder, nên 1 kiến trúc chạy được cho cả ảnh 28×28×1 (MNIST/Fashion-MNIST) lẫn
 32×32×3 (CIFAR-10/SVHN/CelebA) — code gốc trong `DeepSMOTE/DeepSMOTE_MNIST.py` chỉ viết cứng cho 28×28.
@@ -271,8 +284,10 @@ src/preprocessing/
 └── create_imbalanced_dataset.py  # CLI: sample → lưu → load lại → validate → metadata
 
 src/visualization/
-├── report.py                     # load dataset đã tạo, so sánh với DATASET_CONFIGS, vẽ biểu đồ
-└── inspect_dataset.py            # CLI: in bảng so sánh + xuất class_distribution.png, sample_grid.png
+├── report.py                     # load dataset đã tạo (tầng 1), so sánh với DATASET_CONFIGS, vẽ biểu đồ
+├── inspect_dataset.py            # CLI: in bảng so sánh + xuất class_distribution.png, sample_grid.png
+├── deepsmote_report.py           # load dataset đã balance (tầng 2), báo cáo thật/synthetic, vẽ biểu đồ
+└── inspect_balanced_dataset.py   # CLI: in báo cáo + xuất balance_distribution.png, real_vs_synthetic.png
 
 src/deepsmote/
 ├── config.py                     # TrainConfig: dim_h, n_z, lr, epochs, batch_size, k_neighbors
